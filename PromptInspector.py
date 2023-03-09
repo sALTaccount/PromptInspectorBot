@@ -40,7 +40,7 @@ def get_embed(embed_dict, context):
     for key, value in embed_dict.items():
         embed.add_field(name=key, value=value)
     pfp = context.author.avatar if context.author.avatar else context.author.default_avatar_url
-    embed.set_footer(text=f'Requested by {context.author}', icon_url=pfp)
+    embed.set_footer(text=f'Original post by {context.author}', icon_url=pfp)
     return embed
 
 
