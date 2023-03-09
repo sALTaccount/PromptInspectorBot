@@ -11,6 +11,7 @@ MONITORED_CHANNEL_IDS = toml.load('config.toml')['MONITORED_CHANNEL_IDS']
 
 intents = Intents.default()
 intents.message_content = True
+intents.members = True
 client = Client(intents=intents)
 
 
@@ -80,9 +81,11 @@ async def on_raw_reaction_add(ctx):
                             metadata = img.info
                             metadata = metadata['parameters']
                             embed = get_embed(get_params_from_string(metadata), message)
+                            embed.set_image(url=attachment.url)
                         except:
                             pass
-                        await message.reply(embed=embed, mention_author=False)
+                        user_dm = await client.get_user(ctx.user_id).create_dm()
+                        await user_dm.send(embed=embed, mention_author=False)
 
 
 client.run(os.environ["BOT_TOKEN"])
