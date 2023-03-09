@@ -82,10 +82,10 @@ async def on_raw_reaction_add(ctx):
                             metadata = metadata['parameters']
                             embed = get_embed(get_params_from_string(metadata), message)
                             embed.set_image(url=attachment.url)
+                            user_dm = await client.get_user(ctx.user_id).create_dm()
+                            await user_dm.send(embed=embed, mention_author=False)
                         except:
                             pass
-                        user_dm = await client.get_user(ctx.user_id).create_dm()
-                        await user_dm.send(embed=embed, mention_author=False)
 
 
 client.run(os.environ["BOT_TOKEN"])
