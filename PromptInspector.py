@@ -2,7 +2,8 @@ import io
 import os
 import toml
 
-from discord import Client, Intents, Embed
+from discord import Client, Intents, Embed, ButtonStyle
+from discord.ui import View, button
 from dotenv import load_dotenv
 from PIL import Image
 
@@ -65,6 +66,18 @@ async def on_message(message):
                         pass
 
 
+class MyView(View):
+    def __init__(self):
+        super().__init__()
+        self.metadata = None
+
+    @button(label='Full Parameters', style=ButtonStyle.green)
+    async def details(self, button, interaction):
+        button.disabled = True
+        await interaction.response.edit_message(view=self)
+        await interaction.followup.send(f"```yaml\n{self.metadata}```")
+
+
 @client.event
 async def on_raw_reaction_add(ctx):
     if ctx.emoji.name == '🔎':
@@ -83,7 +96,9 @@ async def on_raw_reaction_add(ctx):
                             embed = get_embed(get_params_from_string(metadata), message)
                             embed.set_image(url=attachment.url)
                             user_dm = await client.get_user(ctx.user_id).create_dm()
-                            await user_dm.send(embed=embed, mention_author=False)
+                            custom_view = MyView()
+                            custom_view.metadata = metadata
+                            await user_dm.send(view=custom_view, embed=embed, mention_author=False)
                         except:
                             pass
 
