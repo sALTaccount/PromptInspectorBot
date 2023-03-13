@@ -24,8 +24,12 @@ def get_params_from_string(param_str):
     if 'Negative prompt: ' in prompts:
         output_dict['Prompt'] = prompts.split('Negative prompt: ')[0]
         output_dict['Negative Prompt'] = prompts.split('Negative prompt: ')[1]
+        if len(output_dict['Negative Prompt']) > 1000:
+            output_dict['Negative Prompt'] = output_dict['Negative Prompt'][:1000] + '...'
     else:
         output_dict['Prompt'] = prompts
+    if len(output_dict['Prompt']) > 1000:
+      output_dict['Prompt'] = output_dict['Prompt'][:1000] + '...'
     params = params.split(', ')
     for param in params:
         try:
@@ -68,14 +72,18 @@ async def on_message(message):
 
 class MyView(View):
     def __init__(self):
-        super().__init__()
+        super().__init__(timeout=3600, disable_on_timeout=True)
         self.metadata = None
 
     @button(label='Full Parameters', style=ButtonStyle.green)
     async def details(self, button, interaction):
         button.disabled = True
         await interaction.response.edit_message(view=self)
-        await interaction.followup.send(f"```yaml\n{self.metadata}```")
+        if len(self.metadata) > 1980:
+          for i in range(0, len(self.metadata), 1980):
+            await interaction.followup.send(f"```yaml\n{self.metadata[i:i+1980]}```")
+        else:
+          await interaction.followup.send(f"```yaml\n{self.metadata}```")
 
 
 @client.event
