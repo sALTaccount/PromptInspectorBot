@@ -1,3 +1,7 @@
+# PROJECT IS DEAD
+
+As of 3/31/2023, discord strips all exif data from images uploaded on discord, rendering this bot useless
+
 # Prompt Inspector 🔎
 Inspect prompts 🔎 from images uploaded to discord
 
