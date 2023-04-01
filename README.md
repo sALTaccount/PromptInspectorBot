@@ -1,6 +1,8 @@
-# PROJECT IS DEAD
+# UPDATE
 
-As of 3/31/2023, discord strips all exif data from images uploaded on discord, rendering this bot useless
+As of 3/31/2023, discord strips all exif data from images uploaded on discord. In order to have the prompt be usable by Prompt Inspector,
+you must install a webui extension that adds prompt data into the alpha channel of the image. The difference is not noticable to the human eye.
+https://github.com/ashen-sensored/sd_webui_stealth_pnginfo
 
 # Prompt Inspector 🔎
 Inspect prompts 🔎 from images uploaded to discord
