@@ -162,7 +162,7 @@ async def read_attachment_metadata(i: int, attachment: Attachment, metadata: Ord
 @client.event
 async def on_raw_reaction_add(ctx: RawReactionActionEvent):
     """Send image metadata in reacted post to user DMs"""
-    if ctx.emoji.name != '🔎' or ctx.channel_id not in MONITORED_CHANNEL_IDS or ctx.author.bot:
+    if ctx.emoji.name != '🔎' or ctx.channel_id not in MONITORED_CHANNEL_IDS or ctx.member.bot:
         return
     channel = client.get_channel(ctx.channel_id)
     message = await channel.fetch_message(ctx.message_id)
