@@ -1,4 +1,7 @@
-# UPDATE
+# UPDATE v2
+Discord no longer strips exif data!
+
+### UPDATE
 
 As of 3/31/2023, discord strips all exif data from images uploaded on discord. In order to have the prompt be usable by Prompt Inspector,
 you must install a webui extension that adds prompt data into the alpha channel of the image. The difference is not noticable to the human eye.
