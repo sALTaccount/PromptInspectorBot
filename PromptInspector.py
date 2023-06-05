@@ -47,8 +47,7 @@ def get_embed(embed_dict, context: Message):
     embed = Embed(color=context.author.color)
     for key, value in embed_dict.items():
         embed.add_field(name=key, value=value, inline='Prompt' not in key)
-    pfp = context.author.avatar if context.author.avatar else context.author.default_avatar_url
-    embed.set_footer(text=f'Posted by {context.author}', icon_url=pfp)
+    embed.set_footer(text=f'Posted by {context.author}', icon_url=context.author.display_avatar)
     return embed
 
 
