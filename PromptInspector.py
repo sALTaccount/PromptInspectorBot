@@ -3,7 +3,7 @@ import os
 import toml
 import asyncio
 
-from discord import Client, Intents, Embed, ButtonStyle, Message, Attachment, File, Embed, Member, RawReactionActionEvent, ApplicationContext
+from discord import Intents, Embed, ButtonStyle, Message, Attachment, File, RawReactionActionEvent, ApplicationContext
 from discord.ext import commands
 from discord.ui import View, button
 from dotenv import load_dotenv
@@ -187,8 +187,10 @@ class MyView(View):
         button.disabled = True
         await interaction.response.edit_message(view=self)
         if len(self.metadata) > 1980:
-          for i in range(0, len(self.metadata), 1980):
-            await interaction.followup.send(f"```yaml\n{self.metadata[i:i+1980]}```")
+          with io.StringIO() as f:
+            f.write(self.metadata)
+            f.seek(0)
+            await interaction.followup.send(file=File(f, "parameters.yaml"))
         else:
           await interaction.followup.send(f"```yaml\n{self.metadata}```")
 
@@ -198,11 +200,22 @@ async def read_attachment_metadata(i: int, attachment: Attachment, metadata: Ord
     try:
         image_data = await attachment.read()
         with Image.open(io.BytesIO(image_data)) as img:
-            try:
+            # try:
+            #     info = img.info['parameters']
+            # except:
+            #     info = read_info_from_image_stealth(img)
+
+            if img.info:
+              if 'parameters' in img.info:
                 info = img.info['parameters']
-            except:
+              elif 'prompt' in img.info:
+                info = img.info['prompt']
+              elif img.info['Software'] == 'NovelAI':
+                info = img.info["Description"] + img.info["Comment"]
+            else:
                 info = read_info_from_image_stealth(img)
-            if info and "Steps" in info:
+                
+            if info:
                 metadata[i] = info
     except Exception as error:
         print(f"{type(error).__name__}: {error}")
@@ -228,11 +241,25 @@ async def on_raw_reaction_add(ctx: RawReactionActionEvent):
     user_dm = await client.get_user(ctx.user_id).create_dm()
     for attachment, data in [(attachments[i], data) for i, data in metadata.items()]:
         try:
-            embed = get_embed(get_params_from_string(data), message)
-            embed.set_image(url=attachment.url)
-            custom_view = MyView()
-            custom_view.metadata = data
-            await user_dm.send(view=custom_view, embed=embed, mention_author=False)
+
+            if 'Steps:' in data:
+              params = get_params_from_string(data)
+              embed = get_embed(params, message)
+              embed.set_image(url=attachment.url)
+              custom_view = MyView()
+              custom_view.metadata = data
+              await user_dm.send(view=custom_view, embed=embed, mention_author=False)
+            else :
+              img_type = "ComfyUI" if "\"inputs\"" in data else "NovelAI"
+              embed = Embed(title=img_type+" Parameters", color=message.author.color)
+              embed.set_footer(text=f'Posted by {message.author}', icon_url=message.author.display_avatar)
+              embed.set_image(url=attachment.url)
+              await user_dm.send(embed=embed, mention_author=False)
+              with io.StringIO() as f:
+                f.write(data)
+                f.seek(0)
+                await user_dm.send(file=File(f, "parameters.yaml"))
+        
         except:
             pass
 
