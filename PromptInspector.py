@@ -187,8 +187,10 @@ class MyView(View):
         button.disabled = True
         await interaction.response.edit_message(view=self)
         if len(self.metadata) > 1980:
-          for i in range(0, len(self.metadata), 1980):
-            await interaction.followup.send(f"```yaml\n{self.metadata[i:i+1980]}```")
+          with io.StringIO() as f:
+            f.write(self.metadata)
+            f.seek(0)
+            await interaction.followup.send(file=File(f, "parameters.yaml"))
         else:
           await interaction.followup.send(f"```yaml\n{self.metadata}```")
 
