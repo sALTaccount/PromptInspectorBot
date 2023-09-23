@@ -2,6 +2,7 @@ import io
 import os
 import toml
 import asyncio
+import gzip
 
 from discord import Intents, Embed, ButtonStyle, Message, Attachment, File, RawReactionActionEvent, ApplicationContext
 from discord.ext import commands
@@ -51,17 +52,17 @@ def get_embed(embed_dict, context: Message):
     return embed
 
 
-def read_info_from_image_stealth(image):
+def read_info_from_image_stealth(image: Image.Image):
     # trying to read stealth pnginfo
     width, height = image.size
     pixels = image.load()
 
-    has_alpha = True if image.mode == 'RGBA' else False
+    has_alpha = True if image.mode == "RGBA" else False
     mode = None
     compressed = False
-    binary_data = ''
-    buffer_a = ''
-    buffer_rgb = ''
+    binary_data = ""
+    buffer_a = ""
+    buffer_rgb = ""
     index_a = 0
     index_rgb = 0
     sig_confirmed = False
@@ -82,40 +83,42 @@ def read_info_from_image_stealth(image):
             buffer_rgb += str(b & 1)
             index_rgb += 3
             if confirming_signature:
-                if index_a == len('stealth_pnginfo') * 8:
-                    decoded_sig = bytearray(int(buffer_a[i:i + 8], 2) for i in
-                                            range(0, len(buffer_a), 8)).decode('utf-8', errors='ignore')
-                    if decoded_sig in {'stealth_pnginfo', 'stealth_pngcomp'}:
+                if index_a == len("stealth_pnginfo") * 8:
+                    decoded_sig = bytearray(
+                        int(buffer_a[i : i + 8], 2) for i in range(0, len(buffer_a), 8)
+                    ).decode("utf-8", errors="ignore")
+                    if decoded_sig in {"stealth_pnginfo", "stealth_pngcomp"}:
                         confirming_signature = False
                         sig_confirmed = True
                         reading_param_len = True
-                        mode = 'alpha'
-                        if decoded_sig == 'stealth_pngcomp':
+                        mode = "alpha"
+                        if decoded_sig == "stealth_pngcomp":
                             compressed = True
-                        buffer_a = ''
+                        buffer_a = ""
                         index_a = 0
                     else:
                         read_end = True
                         break
-                elif index_rgb == len('stealth_pnginfo') * 8:
-                    decoded_sig = bytearray(int(buffer_rgb[i:i + 8], 2) for i in
-                                            range(0, len(buffer_rgb), 8)).decode('utf-8', errors='ignore')
-                    if decoded_sig in {'stealth_rgbinfo', 'stealth_rgbcomp'}:
+                elif index_rgb == len("stealth_pnginfo") * 8:
+                    decoded_sig = bytearray(
+                        int(buffer_rgb[i : i + 8], 2) for i in range(0, len(buffer_rgb), 8)
+                    ).decode("utf-8", errors="ignore")
+                    if decoded_sig in {"stealth_rgbinfo", "stealth_rgbcomp"}:
                         confirming_signature = False
                         sig_confirmed = True
                         reading_param_len = True
-                        mode = 'rgb'
-                        if decoded_sig == 'stealth_rgbcomp':
+                        mode = "rgb"
+                        if decoded_sig == "stealth_rgbcomp":
                             compressed = True
-                        buffer_rgb = ''
+                        buffer_rgb = ""
                         index_rgb = 0
             elif reading_param_len:
-                if mode == 'alpha':
+                if mode == "alpha":
                     if index_a == 32:
                         param_len = int(buffer_a, 2)
                         reading_param_len = False
                         reading_param = True
-                        buffer_a = ''
+                        buffer_a = ""
                         index_a = 0
                 else:
                     if index_rgb == 33:
@@ -127,7 +130,7 @@ def read_info_from_image_stealth(image):
                         buffer_rgb = pop
                         index_rgb = 1
             elif reading_param:
-                if mode == 'alpha':
+                if mode == "alpha":
                     if index_a == param_len:
                         binary_data = buffer_a
                         read_end = True
@@ -146,18 +149,21 @@ def read_info_from_image_stealth(image):
                 break
         if read_end:
             break
-    if sig_confirmed and binary_data != '':
+    if sig_confirmed and binary_data != "":
         # Convert binary string to UTF-8 encoded text
-        byte_data = bytearray(int(binary_data[i:i + 8], 2) for i in range(0, len(binary_data), 8))
+        byte_data = bytearray(int(binary_data[i : i + 8], 2) for i in range(0, len(binary_data), 8))
         try:
             if compressed:
-                decoded_data = gzip.decompress(bytes(byte_data)).decode('utf-8')
+                decoded_data = gzip.decompress(bytes(byte_data)).decode("utf-8")
             else:
-                decoded_data = byte_data.decode('utf-8', errors='ignore')
+                decoded_data = byte_data.decode("utf-8", errors="ignore")
             return decoded_data
-        except:
+        except Exception as e:
+            print(e)
             pass
     return None
+
+
 
 
 @client.event
