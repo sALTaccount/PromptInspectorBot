@@ -270,7 +270,7 @@ async def on_raw_reaction_add(ctx: RawReactionActionEvent):
             pass
 
 
-@client.message_command(name="View Parameters")
+@client.message_command(name="View Prompt")
 async def message_command(ctx: ApplicationContext, message: Message):
     """Get raw list of parameters for every image in this post."""
     attachments = [a for a in message.attachments if a.filename.lower().endswith(".png")]
